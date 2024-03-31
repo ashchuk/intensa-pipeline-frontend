@@ -1,0 +1,21 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: intensa-ng-client
+spec:
+  destination:
+    name: ''
+    namespace: intensa
+    server: 'https://kubernetes.default.svc'
+  source:
+    path: apps/intensa-ng-client
+    repoURL: 'git@github.com:RepoOwner/intensa-infra.git'
+    targetRevision: master
+    helm:
+      valueFiles:
+        - values.production.yaml
+  project: intensa
+  syncPolicy:
+    automated:
+      prune: false
+      selfHeal: false

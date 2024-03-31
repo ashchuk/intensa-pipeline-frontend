@@ -1,0 +1,57 @@
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  generateName: tekton-api-pipelinerun-
+  namespace: tekton-pipelines
+spec:
+  pipelineRef:
+    name: intensa-api-pipeline
+  params:
+    - name: gitUrl
+      value: git@github.com:RepoOwner/intensa-backend.git
+    - name: infraGitUrl
+      value: git@github.com:RepoOwner/intensa-infra.git
+    - name: branchName
+      value: master
+    - name: infraBranchName
+      value: master
+    - name: imageUrl
+      value: registry.website.ru/intensa/api
+    - name: imageTag
+      value: v0.0.1
+    - name: pathToContext
+      value: './src'
+    - name: sonar-url
+      value: https://sonar.website.ru
+    - name: sonar-project-name
+      value: intensa-api
+  serviceAccountName: intensa-pipeline-account
+  workspaces:
+    - name: git-source
+      volumeClaimTemplate:
+        spec:
+          accessModes:
+            - ReadWriteOnce # access mode may affect how you can use this volume in parallel tasks
+          resources:
+            requests:
+              storage: 1Gi
+    - name: git-infra-source
+      volumeClaimTemplate:
+        spec:
+          accessModes:
+            - ReadWriteOnce # access mode may affect how you can use this volume in parallel tasks
+          resources:
+            requests:
+              storage: 100Mi
+    - name: ssh-creds
+      secret:
+        secretName: github-ssh-creds-secret
+    - name: ssh-w-creds
+      secret:
+        secretName: github-ssh-w-creds-secret
+    - name: dockerconfig
+      secret:
+        secretName: website-reg-cred
+    - name: sonar-settings
+      secret:
+        secretName: website-sonar-settings

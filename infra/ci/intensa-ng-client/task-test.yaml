@@ -1,0 +1,38 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: js-test
+  namespace: tekton-pipelines
+  annotations:
+    description: Executes build, test, and sonarscan logic for a NodeJS application
+    app.openshift.io/description: Executes build, test, and sonarscan logic for a NodeJS application
+    app.openshift.io/vcs-uri: https://github.com/IBM/ibm-garage-tekton-tasks
+    app.openshift.io/vcs-ref: master
+  labels:
+    version: 0.0.0
+spec:
+  workspaces:
+    - name: source
+      description: A workspace that contains the fetched git repository.
+  params:
+    - name: subdirectory
+      default: /
+    - name: js-image
+      default: zenika/alpine-chrome:102-with-node-16
+    - name: chrome-path
+      default: /usr/lib/chromium/chrome
+  steps:
+    - name: test
+      image: $(params.js-image)
+      args: ["--no-sandbox", "--cap-add=SYS_ADMIN"]
+      workingDir: $(workspaces.source.path)/$(params.subdirectory)
+      script: |
+        npm install
+        if [ -d client ]; then
+          cd client
+          npm install
+          cd -
+        fi
+        npm run build --if-present
+        export CHROME_BIN=$(params.chrome-path)
+        npm run test
